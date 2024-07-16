@@ -1,0 +1,13 @@
+# rest api configuration
+rest:
+  # listening port
+  port: 8090
+  # root context of the application
+  context: ""
+database:
+  file: gommentary.db
+# enable /metrics endpoint
+enableOtel: false
+jwt:
+  required: true
+  header: Authorization

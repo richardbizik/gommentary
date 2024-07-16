@@ -1,0 +1,333 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/OAI/OpenAPI-Specification/main/schemas/v3.0/schema.yaml
+openapi: 3.0.3
+info:
+  title: Gommentary
+  description: Service offering a REST API for comments.
+  version: 0.1.0
+security:
+  - bearerAuth: []
+paths:
+  /subject/{subject}/comment:
+    get:
+      summary: Get a page of comments 
+      operationId: getCommentsPage
+      parameters:
+        - name: subject
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: size
+          in: query
+          description: Return maximum of <limit> number of definitions. Default 20.
+          schema:
+            type: integer
+            maximum: 100
+            minimum: 1
+        - name: page
+          in: query
+          description: Page of the comments to retrieve (starts at 0).
+          schema:
+            type: integer
+      responses:
+        200:
+          description: OK
+          content: 
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommentsPage"
+        400:
+          description: OK
+          content: 
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        404:
+          description: OK
+          content: 
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    post:
+      summary:  Create a comment to subject (if subject is another comment you can create nested comments).
+      operationId: createComment
+      parameters:
+        - name: subject
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateComment'
+      responses:
+        200:
+          description: OK
+          content: 
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Comment"
+        400:
+          description: OK
+          content: 
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        500:
+          description: OK
+          content: 
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /comment/{comment}:
+    patch:
+      summary:  Edit comment
+      operationId: editComment
+      parameters:
+        - name: comment
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EditComment'
+      responses:
+        200:
+          description: OK
+          content: 
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommentSimple"
+        400:
+          description: OK
+          content: 
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        404:
+          description: OK
+          content: 
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        500:
+          description: OK
+          content: 
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /comment/{comment}/history:
+    get:
+      summary:  Get comment history
+      operationId: getCommentHistory
+      parameters:
+        - name: comment
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: size
+          in: query
+          description: Return maximum of <limit> number of definitions. Default 20.
+          schema:
+            type: integer
+            maximum: 100
+            minimum: 1
+        - name: page
+          in: query
+          description: Page of the comments to retrieve (starts at 0).
+          schema:
+            type: integer
+      responses:
+        200:
+          description: OK
+          content: 
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommentHistoryPage"
+        400:
+          description: OK
+          content: 
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        404:
+          description: OK
+          content: 
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+  schemas:
+    CreateComment:
+      type: object
+      required:
+        - text
+      properties: 
+        subjectName: 
+          type: string
+          description: Name of the subject
+        text:
+          type: string
+          description: Text of the comment
+    EditComment:
+      type:  object
+      required: 
+        - text
+      properties: 
+        text:
+          type: string
+          description: Text of the comment
+    Subject:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: string
+          description: Id of the subject that the comment belongs to.
+        name:
+          type: string
+          description: Name of the subject that the comment belongs to.
+    Comment:
+      required:
+        - id
+        - date
+        - text
+        - position
+        - replies
+        - edits
+      type: object
+      properties:
+        id:
+          type: string
+          description: The comment id.
+        author:
+          type: string
+          description: Author of the comment.
+        date:
+          type: string
+          format: date-time
+          description: Date when comment was created.
+        text:
+          type: string
+          description: Text of the comment.
+        position:
+          type: integer
+          description: Position of the comment in reply list.
+        replies:
+          type: integer
+          description: Number of replies to the comment.
+        edits:
+          type: integer
+          description: Number of edits done to the comment.
+    CommentSimple:
+      required:
+        - id
+        - date
+        - text
+      type: object
+      properties:
+        id:
+          type: string
+          description: The comment id.
+        author:
+          type: string
+          description: Author of the comment.
+        date:
+          type: string
+          format: date-time
+          description: Date when comment was created.
+        text:
+          type: string
+          description: Text of the comment.
+    CommentHistory:
+      required:
+        - date
+        - text
+      type: object
+      properties:
+        date:
+          type: string
+          format: date-time
+          description: Date when comment was created.
+        text:
+          type: string
+          description: Text of the comment.
+    CommentsPage:
+      type: object
+      allOf:
+        - type: object
+          required:
+            - subject
+            - content
+          properties:
+            subject: 
+              $ref: "#/components/schemas/Subject"
+            content:
+              type: array
+              items:
+                $ref: "#/components/schemas/Comment"
+        - $ref: "#/components/schemas/Page"
+    CommentHistoryPage:
+      type: object
+      allOf:
+        - type: object
+          required:
+            - comment
+            - content
+          properties:
+            comment: 
+              $ref: "#/components/schemas/CommentSimple"
+            content:
+              type: array
+              items:
+                $ref: "#/components/schemas/CommentHistory"
+        - $ref: "#/components/schemas/Page"
+    Page:
+      type: object
+      required:
+        - first
+        - last
+        - size
+        - totalElements
+        - totalPages
+      properties:
+        first:
+          type: boolean
+        last:
+          type: boolean
+        size:
+          type: integer
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+    Error:
+      type: object
+      required:
+        - severity
+        - message
+        - code
+      properties:
+        severity:
+          type: string
+          description: An exception class indicating the occurred error.
+        message:
+          type: string
+          description: A detailed message of the error.
+        code:
+          type: string
+          description: Error code.
