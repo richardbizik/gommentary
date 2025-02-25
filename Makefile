@@ -82,6 +82,14 @@ oapi-generate: oapi ## Generate rest server files based on open api spec
 	$(OAPI) -generate chi-server,strict-server -package handlers open-api.yaml > ./internal/rest/handlers/zz_generated_server.go
 	$(OAPI) -generate spec -package handlers open-api.yaml > ./internal/rest/handlers/zz_generated_spec.go
 
+.PHONY: test
+test: ## Run tests
+	go test ./...
+
+.PHONY: bench
+bench: ## Run benchmarks
+	go test ./... -bench=.
+
 ##@ Build
 
 .PHONY: docker-build

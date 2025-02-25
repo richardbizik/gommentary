@@ -1,6 +1,7 @@
 package config
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -42,9 +43,15 @@ func InitConfig() Config {
 	} else {
 		fileName = confFile
 	}
-	err := cleanenv.ReadConfig(fileName, &c)
+	var err error
+	if _, perr := os.Stat(fileName); errors.Is(perr, os.ErrNotExist) {
+		err = cleanenv.ReadEnv(&c)
+		fmt.Printf("Configuration file %s not found. Reading config from ENV.\n", fileName)
+	} else {
+		err = cleanenv.ReadConfig(fileName, &c)
+	}
 	if err != nil {
-		fmt.Printf("Error occurred while reading the config file: %s Error: %v", fileName, err)
+		fmt.Printf("Error occurred while reading the configuration: %s\n", err)
 		panic(err)
 	}
 	Conf = c
